@@ -17,17 +17,21 @@ def model_output(weights, inputs, bias):
 
 def train_constant(dataset, labels, lr=0.01, threshold=0.5, epochs_limit=20000):
     sample_count, feature_count = dataset.shape
+
     weights_vec = np.zeros((feature_count, 1))
     bias_term = 0.0
+
     error_track = []
     final_epoch = epochs_limit
 
     print(f"[Constant LR] Started | lr={lr} | target error={threshold}")
 
     for epoch in range(epochs_limit):
+
         shuffled_idx = np.random.permutation(sample_count)
 
         for i in shuffled_idx:
+
             sample = dataset[i:i+1]
             label = float(labels[i, 0])
 
@@ -38,6 +42,7 @@ def train_constant(dataset, labels, lr=0.01, threshold=0.5, epochs_limit=20000):
             bias_term += lr * delta
 
         predictions = model_output(weights_vec, dataset, bias_term)
+
         total_error = float(np.sum((predictions - labels) ** 2))
         error_track.append(total_error)
 
@@ -55,18 +60,23 @@ def train_constant(dataset, labels, lr=0.01, threshold=0.5, epochs_limit=20000):
 
 
 def train_adaptive(dataset, labels, threshold=0.5, epochs_limit=20000):
+
     sample_count, feature_count = dataset.shape
+
     weights_vec = np.zeros((feature_count, 1))
     bias_term = 0.0
+
     error_track = []
     final_epoch = epochs_limit
 
     print(f"[Adaptive LR] Started | target error={threshold}")
 
     for epoch in range(epochs_limit):
+
         shuffled_idx = np.random.permutation(sample_count)
 
         for i in shuffled_idx:
+
             sample = dataset[i:i+1]
             label = float(labels[i, 0])
 
@@ -80,6 +90,7 @@ def train_adaptive(dataset, labels, threshold=0.5, epochs_limit=20000):
             bias_term += dynamic_lr * delta
 
         predictions = model_output(weights_vec, dataset, bias_term)
+
         total_error = float(np.sum((predictions - labels) ** 2))
         error_track.append(total_error)
 
@@ -97,26 +108,39 @@ def train_adaptive(dataset, labels, threshold=0.5, epochs_limit=20000):
 
 
 np.random.seed(42)
+
 error_target = 0.5
 
-w_const, b_const, err_const, ep_const = train_constant(points_data, target_data, lr=0.01, threshold=error_target)
+w_const, b_const, err_const, ep_const = train_constant(
+    points_data, target_data, lr=0.01, threshold=error_target
+)
+
 np.random.seed(42)
-w_adapt, b_adapt, err_adapt, ep_adapt = train_adaptive(points_data, target_data, threshold=error_target)
+
+w_adapt, b_adapt, err_adapt, ep_adapt = train_adaptive(
+    points_data, target_data, threshold=error_target
+)
 
 print(f"Speed ratio: {ep_const} / {ep_adapt} = {ep_const / ep_adapt:.2f}")
 
+
 figure, (plot_loss, plot_space) = plt.subplots(1, 2, figsize=(14, 6))
 
-plot_loss.plot(np.arange(1, len(err_const) + 1), err_const,
-               linewidth=2, color="#8B5CF6",
-               label=f"Constant LR (epochs: {ep_const})")
+plot_loss.plot(
+    np.arange(1, len(err_const) + 1),
+    err_const,
+    linewidth=2,
+    label=f"Constant LR (epochs: {ep_const})"
+)
 
-plot_loss.plot(np.arange(1, len(err_adapt) + 1), err_adapt,
-               linewidth=2, color="#F59E0B",
-               label=f"Adaptive LR (epochs: {ep_adapt})")
+plot_loss.plot(
+    np.arange(1, len(err_adapt) + 1),
+    err_adapt,
+    linewidth=2,
+    label=f"Adaptive LR (epochs: {ep_adapt})"
+)
 
-plot_loss.axhline(error_target, linestyle="--",
-                  linewidth=1.3, color="#10B981")
+plot_loss.axhline(error_target, linestyle="--", linewidth=1.3)
 
 plot_loss.set_xlabel("Epoch")
 plot_loss.set_ylabel("Squared Error")
@@ -125,27 +149,36 @@ plot_loss.set_title("Learning Curve")
 plot_loss.legend()
 plot_loss.grid(alpha=0.3)
 
+
 mask_zero = target_data[:, 0] == 0
 mask_one = target_data[:, 0] == 1
 
-plot_space.scatter(points_data[mask_zero][:, 0],
-                   points_data[mask_zero][:, 1],
-                   s=200, color="#06B6D4",
-                   edgecolors="black", label="Class 0")
+plot_space.scatter(
+    points_data[mask_zero][:, 0],
+    points_data[mask_zero][:, 1],
+    s=200,
+    label="Class 0"
+)
 
-plot_space.scatter(points_data[mask_one][:, 0],
-                   points_data[mask_one][:, 1],
-                   s=200, color="#F43F5E",
-                   edgecolors="black", label="Class 1")
+plot_space.scatter(
+    points_data[mask_one][:, 0],
+    points_data[mask_one][:, 1],
+    s=200,
+    label="Class 1"
+)
+
 
 weight1, weight2 = w_adapt.flatten()
 x_line = np.linspace(-9, 9, 500)
 
 if abs(weight2) > 1e-9:
-    y_line = (b_adapt + 0.5 - weight1 * x_line) / weight2
-    plot_space.plot(x_line, y_line,
-                    linewidth=2.5, color="#22C55E",
-                    label="Decision Boundary")
+    y_line = (b_adapt - weight1 * x_line) / weight2
+    plot_space.plot(
+        x_line,
+        y_line,
+        linewidth=2.5,
+        label="Decision Boundary"
+    )
 
 plot_space.set_xlim(-9, 9)
 plot_space.set_ylim(-9, 9)
@@ -158,6 +191,7 @@ plot_space.grid(alpha=0.3)
 plt.tight_layout()
 plt.show()
 
+
 history_points = []
 history_classes = []
 
@@ -166,17 +200,21 @@ print("Prediction mode (Adaptive model)")
 print("Enter coordinates: x1 x2   or type 'exit'\n")
 
 while True:
+
     user_entry = input("Input: ").strip()
 
     if user_entry in ("exit", ""):
         break
 
     try:
+
         val1, val2 = map(float, user_entry.split())
+
         sample = np.array([[val1, val2]])
 
         result_score = model_output(w_adapt, sample, b_adapt).item()
-        predicted_class = 1 if result_score >= 0.5 else 0
+
+        predicted_class = 1 if result_score >= 0 else 0
 
         print(f"Score: {result_score:+.6f}")
         print(f"Predicted class: {predicted_class}\n")
@@ -186,33 +224,49 @@ while True:
 
         fig2, axis2 = plt.subplots(figsize=(8, 8))
 
-        axis2.scatter(points_data[mask_zero][:, 0],
-                      points_data[mask_zero][:, 1],
-                      s=200, color="#06B6D4",
-                      edgecolors="black", label="Class 0")
+        axis2.scatter(
+            points_data[mask_zero][:, 0],
+            points_data[mask_zero][:, 1],
+            s=200,
+            label="Class 0"
+        )
 
-        axis2.scatter(points_data[mask_one][:, 0],
-                      points_data[mask_one][:, 1],
-                      s=200, color="#F43F5E",
-                      edgecolors="black", label="Class 1")
+        axis2.scatter(
+            points_data[mask_one][:, 0],
+            points_data[mask_one][:, 1],
+            s=200,
+            label="Class 1"
+        )
 
         if abs(weight2) > 1e-9:
-            y_dynamic = (b_adapt + 0.5 - weight1 * x_line) / weight2
-            axis2.plot(x_line, y_dynamic,
-                       linewidth=2.5, color="#22C55E",
-                       label="Boundary")
+            y_dynamic = (b_adapt - weight1 * x_line) / weight2
+            axis2.plot(
+                x_line,
+                y_dynamic,
+                linewidth=2.5,
+                label="Boundary"
+            )
 
         for pt, cls in zip(history_points, history_classes):
-            axis2.scatter(pt[0], pt[1],
-                          marker="X", s=260,
-                          color="#FACC15" if cls == 1 else "#1E3A8A",
-                          edgecolors="black", zorder=6)
+
+            axis2.scatter(
+                pt[0],
+                pt[1],
+                marker="X",
+                s=260,
+                zorder=6
+            )
 
         axis2.set_xlim(-9, 9)
         axis2.set_ylim(-9, 9)
+
         axis2.set_xlabel("Feature 1")
         axis2.set_ylabel("Feature 2")
-        axis2.set_title(f"Last input: ({val1}, {val2}) → class {predicted_class}")
+
+        axis2.set_title(
+            f"Last input: ({val1}, {val2}) → class {predicted_class}"
+        )
+
         axis2.legend()
         axis2.grid(alpha=0.3)
 
